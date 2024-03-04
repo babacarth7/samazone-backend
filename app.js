@@ -1,16 +1,20 @@
 const express = require("express");
 const session = require("express-session");
+const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
 const config = require("./config/config");
 const data = require("./utils/data");
 const Product = require("./models/product.model");
+const User = require("./models/user.model");
 
 const authRoutes = require("./routes/auth.routes");
 const orderRoutes = require("./routes/order.routes");
 const productRoutes = require("./routes/product.routes");
 const userRoutes = require("./routes/user.routes");
 const adminRoutes = require("./routes/admin.routes");
+
+require("dotenv").config();
 
 const app = express();
 
@@ -43,16 +47,19 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/seed", async (req, res) => {
-  await mongoose.connect(config.db);
+  await mongoose.connect(process.env.MONGODB_URI);
+  await User.deleteMany();
+    await User.insertMany(data.users);
   await Product.deleteMany();
   await Product.insertMany(data.products);
+
   res.send({ message: "Seeded successfully" });
 });
 
 const startServer = async () => {
   try {
-    await mongoose.connect(config.db);
-    console.log(`MongoDB connected to ${config.db}`);
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("Mongodb connected successfully");
 
     app.listen(config.port, (err) => {
       if (err) {
